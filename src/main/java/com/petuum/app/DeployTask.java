@@ -21,6 +21,7 @@ public class DeployTask {
     private String pathOfHostFile;
     private File packageFile;
     private File dataLibraryFile;
+    private File keyfile = new File(System.getProperty("user.home") + "/.ssh/id_rsa");
     private Vector<String> localRelativeFilesList = new Vector<String>();
 
     public DeployTask(String hostfile) throws IOException {
@@ -34,6 +35,13 @@ public class DeployTask {
                 continue;
             }
             hostMap.put(id, line[1]);
+        }
+    }
+
+    public void setPublicKeyAuthentication(String username, String privateFile) {
+        this.username = username;
+        if(privateFile != null) {
+            keyfile = new File(privateFile);
         }
     }
 
@@ -51,7 +59,11 @@ public class DeployTask {
             Map.Entry<Integer, String> entry = iter.next();
             Connection conn = new Connection(entry.getValue());
             conn.connect();
-            if(! conn.authenticateWithPassword(username, password)) {
+            boolean isAuthenticated = false;
+            if(keyfile.exists()) {
+                isAuthenticated = conn.authenticateWithPublicKey(username, keyfile, password);
+            }
+            if(!isAuthenticated && !conn.authenticateWithPassword(username, password)) {
                 throw new IOException("Authentication failed.");
             }
             //send packages
@@ -62,7 +74,7 @@ public class DeployTask {
             {
                 sessionClient0 = session;
             }
-            String command = "killall -q java;cd "+ remotePath +";export LD_LIBRARY_PATH=.:third_party/lib;java -classpath " + getClassPath()
+            String command = "killall -q java;cd " + remotePath +";export LD_LIBRARY_PATH=.:third_party/lib;java -classpath " + getClassPath()
                     + " " + mainClass + " " + client_id++ + " "+pathOfHostFile;
             session.execCommand(command);
         }
@@ -103,7 +115,7 @@ public class DeployTask {
         client.put(dataLibraryFile.getAbsolutePath(), remotePath);
         //unzip
         session = conn.openSession();
-        session.execCommand("cd "+ remotePath +";unzip -o " + packageFile.getName() + ";rm " + packageFile.getName() + ";unzip -n " + dataLibraryFile.getName());
+        session.execCommand("cd " + remotePath +";unzip -o " + packageFile.getName() + ";rm " + packageFile.getName() + ";unzip -n " + dataLibraryFile.getName());
         waitSession(session);
         session.close();
     }
