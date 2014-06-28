@@ -1,6 +1,6 @@
 # Boost is too heavy to host on github..
 THIRD_PARTY_HOST = http://www.cs.cmu.edu/~jinlianw/third_party
-BOOST_HOST = http://downloads.sourceforge.net/project/boost/boost/1.54.0
+BOOST_HOST = http://downloads.sourceforge.net/project/boost/boost/1.55.0
 
 third_party_core: path \
 	                gflags \
@@ -89,7 +89,7 @@ $(ZMQ_SRC):
 
 # ==================== boost ====================
 
-BOOST_SRC = $(THIRD_PARTY_SRC)/boost_1_54_0.tar.bz2
+BOOST_SRC = $(THIRD_PARTY_SRC)/boost_1_55_0.tar.bz2
 BOOST_INCLUDE = $(THIRD_PARTY_INCLUDE)/boost
 
 boost: $(BOOST_INCLUDE)
